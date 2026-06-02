@@ -11,9 +11,7 @@
 
 void Draw_Grid();
 void DrawApple();
-void SnakeMovement(Vector2 snake, Vector2 direction);
 
-float timer = 0.0f;
 int main(){
     InitWindow(WIDTH, HEIGHT, "Snake Game");
     SetTargetFPS(60);
@@ -21,6 +19,7 @@ int main(){
     Vector2 snake = {10*CELLSIZE,10*CELLSIZE};
 
     // Controls Snakes movement and Speed
+    float timer = 0.0f;
     Vector2 direction = {0, 0};
 
     while(!WindowShouldClose()) {
@@ -37,16 +36,6 @@ int main(){
                 WHITE
         );
 
-        SnakeMovement(snake, direction);
-
-       DrawApple();
-
-        EndDrawing();
-    }
-    CloseWindow();
-}
-
-void SnakeMovement(Vector2 snake, Vector2 direction){
         if(IsKeyPressed(KEY_RIGHT)) direction = (Vector2) {1, 0};
 
         if(IsKeyPressed(KEY_LEFT)) direction = (Vector2) {-1, 0};
@@ -63,6 +52,11 @@ void SnakeMovement(Vector2 snake, Vector2 direction){
             timer -= 1.0/SPEED;
         }
 
+       DrawApple();
+
+        EndDrawing();
+    }
+    CloseWindow();
 }
 
 void Draw_Grid(){
