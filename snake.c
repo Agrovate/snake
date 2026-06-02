@@ -7,16 +7,21 @@
 #define ROWS 20
 #define COLS 20
 #define CELLSIZE 40
-#define SPEED 5
+#define SPEED 20
 
-void grid();
-void apple();
+void Draw_Grid();
+void DrawApple();
+void SnakeMovement(Vector2 snake, Vector2 direction);
 
+float timer = 0.0f;
 int main(){
     InitWindow(WIDTH, HEIGHT, "Snake Game");
     SetTargetFPS(60);
 
     Vector2 snake = {10*CELLSIZE,10*CELLSIZE};
+
+    // Controls Snakes movement and Speed
+    Vector2 direction = {0, 0};
 
     while(!WindowShouldClose()) {
         BeginDrawing();
@@ -24,32 +29,43 @@ int main(){
         ClearBackground(BLACK); //Background
 
         //Grids
-        grid();
+        Draw_Grid();
 
         DrawRectangleV(
                 snake,
                 (Vector2){CELLSIZE - 1, CELLSIZE - 1},
-                BLUE
+                WHITE
         );
 
-        if(IsKeyDown(KEY_RIGHT)) snake.x += CELLSIZE;
+        SnakeMovement(snake, direction);
 
-        if(IsKeyDown(KEY_LEFT)) snake.x -= CELLSIZE;
-
-        if(IsKeyDown(KEY_UP)) snake.y -= CELLSIZE;
-
-        if(IsKeyDown(KEY_DOWN)) snake.y += CELLSIZE;
-
-            DrawText(TextFormat("frame data %d",GetFrameTime()), 200, 200, 20, PINK);
-
-       apple();
+       DrawApple();
 
         EndDrawing();
     }
     CloseWindow();
 }
 
-void grid(){
+void SnakeMovement(Vector2 snake, Vector2 direction){
+        if(IsKeyPressed(KEY_RIGHT)) direction = (Vector2) {1, 0};
+
+        if(IsKeyPressed(KEY_LEFT)) direction = (Vector2) {-1, 0};
+
+        if(IsKeyPressed(KEY_UP)) direction = (Vector2) {0, -1};
+
+        if(IsKeyPressed(KEY_DOWN)) direction = (Vector2) {0, 1};
+
+        timer += GetFrameTime();
+
+        if(timer >= 1.0/SPEED) {
+            snake.x += direction.x * CELLSIZE;
+            snake.y += direction.y * CELLSIZE;
+            timer -= 1.0/SPEED;
+        }
+
+}
+
+void Draw_Grid(){
     for(int i = 0; i < ROWS; i++){
         for(int j = 0; j < COLS;j++) {
             int posX = j*CELLSIZE;
@@ -60,7 +76,7 @@ void grid(){
     }
 }
 
-void apple() {
+void DrawApple() {
         DrawCircle(
                 (0*CELLSIZE+1*CELLSIZE)/2,
                 (0*CELLSIZE+1*CELLSIZE)/2,
