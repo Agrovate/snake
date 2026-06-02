@@ -40,6 +40,8 @@ int main(){
 
         if(IsKeyDown(KEY_DOWN)) snake.y += CELLSIZE;
 
+            DrawText(TextFormat("frame data %d",GetFrameTime()), 200, 200, 20, PINK);
+
        apple();
 
         EndDrawing();
