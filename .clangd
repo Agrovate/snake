@@ -1,7 +1,6 @@
 CompileFlags:
   Add: [
-    "-target", "arm64-apple-darwin",
-    "-I/opt/homebrew/include/SDL2",
-    "-D_REENTRANT"
+    "-I/opt/homebrew/include",
+    "-L/opt/homebrew/lib",
+    "-lraylib"
   ]
-

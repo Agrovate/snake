@@ -1,37 +1,68 @@
-#include<stdio.h>
-#include<SDL.h>
-#include <stdbool.h>
+#include <raylib.h>
+#include <stdio.h>
 
-#define WIDTH 680
-#define HEIGHT 480
+#define WIDTH 800
+#define HEIGHT 800
 
-int main() {
-    printf("Hello snake");
-    SDL_Init(SDL_INIT_VIDEO);
+#define ROWS 20
+#define COLS 20
+#define CELLSIZE 40
+#define SPEED 5
 
-    SDL_Window* window = SDL_CreateWindow(
-                    "Snake Game",
-                    SDL_WINDOWPOS_CENTERED,
-                    SDL_WINDOWPOS_CENTERED,
-                    WIDTH,
-                    HEIGHT,
-                    0
-    );
+void grid();
+void apple();
 
-    bool is_running = true;
-    SDL_Event event;
+int main(){
+    InitWindow(WIDTH, HEIGHT, "Snake Game");
+    SetTargetFPS(60);
 
-    while (is_running) {
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {
-                is_running = false;
-            }
-        }
-        SDL_Delay(16);
+    Vector2 snake = {10*CELLSIZE,10*CELLSIZE};
+
+    while(!WindowShouldClose()) {
+        BeginDrawing();
+
+        ClearBackground(BLACK); //Background
+
+        //Grids
+        grid();
+
+        DrawRectangleV(
+                snake,
+                (Vector2){CELLSIZE - 1, CELLSIZE - 1},
+                BLUE
+        );
+
+        if(IsKeyDown(KEY_RIGHT)) snake.x += CELLSIZE;
+
+        if(IsKeyDown(KEY_LEFT)) snake.x -= CELLSIZE;
+
+        if(IsKeyDown(KEY_UP)) snake.y -= CELLSIZE;
+
+        if(IsKeyDown(KEY_DOWN)) snake.y += CELLSIZE;
+
+       apple();
+
+        EndDrawing();
     }
+    CloseWindow();
+}
 
-    SDL_DestroyWindow(window);
-    SDL_Quit();
+void grid(){
+    for(int i = 0; i < ROWS; i++){
+        for(int j = 0; j < COLS;j++) {
+            int posX = j*CELLSIZE;
+            int posY = i*CELLSIZE;
 
-    return 0;
+            DrawRectangleLines(posX, posY, CELLSIZE, CELLSIZE, WHITE);
+        }
+    }
+}
+
+void apple() {
+        DrawCircle(
+                (0*CELLSIZE+1*CELLSIZE)/2,
+                (0*CELLSIZE+1*CELLSIZE)/2,
+                (int)((CELLSIZE - 1)/2),
+                RED
+        );
 }
