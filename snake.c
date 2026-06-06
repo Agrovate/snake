@@ -1,6 +1,9 @@
 #include <raylib.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
+#include <unistd.h>
+#include <stdbool.h>
 
 #define WIDTH 800
 #define HEIGHT 800
@@ -9,14 +12,16 @@
 #define COLS 20
 #define CELLSIZE 40
 #define SPEED 15
-#define STARTLEN 10
+#define STARTLEN 1
 
 void Draw_Grid();
-void DrawApple();
+void DrawApple(int x, int y);
+void UpdateApple(int* x, int* y);
 void DrawSnake();
-void CreateSnake(Vector2 position, Vector2 direction, int length);
+void CreateSnake(Vector2 position, Vector2 direction);
 void InputSnake();
 void UpdateSnake();
+void SnakeEats(int x, int y);
 
 typedef struct SnakeNode{
     Vector2 position;
@@ -27,14 +32,22 @@ typedef struct SnakeNode{
 SnakeNode* head = NULL;
 SnakeNode* tail = NULL;
 float timer = 0.0f;
+bool iseaten = true;
+int length = STARTLEN;
 
 int main(){
     InitWindow(WIDTH, HEIGHT, "Snake Game");
     SetTargetFPS(60);
 
-    CreateSnake((Vector2){10*CELLSIZE,10*CELLSIZE}, (Vector2){0,0}, STARTLEN);
+    CreateSnake((Vector2){10*CELLSIZE,10*CELLSIZE}, (Vector2){0,0});
+    int apple_x,apple_y;
 
     while(!WindowShouldClose()) {
+        UpdateApple(&apple_x, &apple_y);
+        DrawApple(apple_x, apple_y);
+
+
+        CreateSnake(head->position, head->direction);
         InputSnake();
         UpdateSnake();
 
@@ -45,8 +58,9 @@ int main(){
         //Grids
         Draw_Grid();
 
-        DrawApple();
         DrawSnake();
+
+        SnakeEats(apple_x, apple_y);
 
         EndDrawing();
     }
@@ -63,14 +77,27 @@ void Draw_Grid(){
         }
     }
 }
-void SnakeEats(){
+void SnakeEats(int x, int y){
+    if(head->position.x == x * CELLSIZE && head->position.y == y * CELLSIZE) {
+        iseaten = true;
+        length += 1;
+    }
 }
-void DrawApple() {
+
+void UpdateApple(int* x, int* y){
+    if(iseaten == true){
+        srand(time(NULL)^getpid());
+        *x = rand()%ROWS;
+        *y = rand()%COLS;
+        iseaten = false;
+    }
+}
+void DrawApple(int x, int y) {
     DrawCircle(
-        (0*CELLSIZE+1*CELLSIZE)/2,
-        (0*CELLSIZE+1*CELLSIZE)/2,
-        (int)((CELLSIZE - 1)/2),
-        RED
+            (x*CELLSIZE+(x+1)*CELLSIZE)/2,
+            (y*CELLSIZE+(y+1)*CELLSIZE)/2,
+            (int)((CELLSIZE - 1)/2),
+            RED
     );
 }
 void InputSnake(){
@@ -118,7 +145,7 @@ void DrawSnake(){
     }
 }
 
-void CreateSnake(Vector2 position, Vector2 direction, int length){
+void CreateSnake(Vector2 position, Vector2 direction){
     while(length){
         if(head == NULL) {
             //Create the head node
