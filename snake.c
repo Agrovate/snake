@@ -11,7 +11,7 @@
 #define ROWS 20
 #define COLS 20
 #define CELLSIZE 40
-#define SPEED 15
+#define SPEED 10
 #define STARTLEN 1
 
 void Draw_Grid();
@@ -22,6 +22,7 @@ void CreateSnake(Vector2 position, Vector2 direction);
 void InputSnake();
 void UpdateSnake();
 void SnakeEats(int x, int y);
+void collision();
 
 typedef struct SnakeNode{
     Vector2 position;
@@ -34,22 +35,26 @@ SnakeNode* tail = NULL;
 float timer = 0.0f;
 bool iseaten = true;
 int length = STARTLEN;
+bool gameOver = false;
 
 int main(){
     InitWindow(WIDTH, HEIGHT, "Snake Game");
     SetTargetFPS(60);
+    srand(time(NULL)^getpid());
 
     CreateSnake((Vector2){10*CELLSIZE,10*CELLSIZE}, (Vector2){0,0});
     int apple_x,apple_y;
 
-    while(!WindowShouldClose()) {
+    while(!WindowShouldClose() && !gameOver) {
         UpdateApple(&apple_x, &apple_y);
-        DrawApple(apple_x, apple_y);
 
 
-        CreateSnake(head->position, head->direction);
         InputSnake();
         UpdateSnake();
+        SnakeEats(apple_x, apple_y);
+
+        if(length > 0)
+            CreateSnake(tail->position, tail->direction);
 
         BeginDrawing();
 
@@ -57,10 +62,12 @@ int main(){
 
         //Grids
         Draw_Grid();
+        DrawApple(apple_x, apple_y);
 
         DrawSnake();
 
-        SnakeEats(apple_x, apple_y);
+        if(head->next != tail)
+            collision();
 
         EndDrawing();
     }
@@ -77,6 +84,36 @@ void Draw_Grid(){
         }
     }
 }
+
+void collision() {
+    bool collision = false;
+    if(head->position.x < 0 || head->position.x > CELLSIZE*(ROWS-1))
+        collision = true;
+    else if(head->position.y < 0 || head->position.y > CELLSIZE*(COLS-1))
+        collision = true;
+
+    SnakeNode* temp = head->next;
+    while(temp != NULL){
+        if(head->position.x == temp->position.x &&
+                (head->position.y == temp->position.y)) {
+            collision = true;
+            break;
+        }
+        temp = temp->next;
+    }
+
+    if(collision){
+        SnakeNode* temp;
+        while(head != NULL){
+            temp = head->next;
+            free(head);
+            head = temp;
+        }
+        tail = NULL;
+        gameOver = true;
+    }
+}
+
 void SnakeEats(int x, int y){
     if(head->position.x == x * CELLSIZE && head->position.y == y * CELLSIZE) {
         iseaten = true;
@@ -86,7 +123,6 @@ void SnakeEats(int x, int y){
 
 void UpdateApple(int* x, int* y){
     if(iseaten == true){
-        srand(time(NULL)^getpid());
         *x = rand()%ROWS;
         *y = rand()%COLS;
         iseaten = false;
