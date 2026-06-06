@@ -8,12 +8,13 @@
 #define ROWS 20
 #define COLS 20
 #define CELLSIZE 40
-#define SPEED 20
+#define SPEED 15
+#define STARTLEN 10
 
 void Draw_Grid();
 void DrawApple();
 void DrawSnake();
-void CreateSnake(Vector2 position, Vector2 direction);
+void CreateSnake(Vector2 position, Vector2 direction, int length);
 void InputSnake();
 void UpdateSnake();
 
@@ -31,11 +32,7 @@ int main(){
     InitWindow(WIDTH, HEIGHT, "Snake Game");
     SetTargetFPS(60);
 
-    Vector2 snake = {10*CELLSIZE,10*CELLSIZE};
-    CreateSnake((Vector2){10*CELLSIZE,10*CELLSIZE}, (Vector2){0,0});
-
-    // Controls Snakes movement and Speed
-    Vector2 direction = {0, 0};
+    CreateSnake((Vector2){10*CELLSIZE,10*CELLSIZE}, (Vector2){0,0}, STARTLEN);
 
     while(!WindowShouldClose()) {
         InputSnake();
@@ -66,40 +63,48 @@ void Draw_Grid(){
         }
     }
 }
-
+void SnakeEats(){
+}
 void DrawApple() {
-        DrawCircle(
-                (0*CELLSIZE+1*CELLSIZE)/2,
-                (0*CELLSIZE+1*CELLSIZE)/2,
-                (int)((CELLSIZE - 1)/2),
-                RED
-        );
+    DrawCircle(
+        (0*CELLSIZE+1*CELLSIZE)/2,
+        (0*CELLSIZE+1*CELLSIZE)/2,
+        (int)((CELLSIZE - 1)/2),
+        RED
+    );
 }
 void InputSnake(){
-    SnakeNode* travel = head;
-    while(travel != NULL){
-        if(IsKeyPressed(KEY_RIGHT)) travel->direction = (Vector2) {1, 0};
+    if(IsKeyPressed(KEY_RIGHT)) head->direction = (Vector2) {1, 0};
 
-        if(IsKeyPressed(KEY_LEFT)) travel->direction = (Vector2) {-1, 0};
+    if(IsKeyPressed(KEY_LEFT)) head->direction = (Vector2) {-1, 0};
 
-        if(IsKeyPressed(KEY_UP)) travel->direction = (Vector2) {0, -1};
+    if(IsKeyPressed(KEY_UP)) head->direction = (Vector2) {0, -1};
 
-        if(IsKeyPressed(KEY_DOWN)) travel->direction = (Vector2) {0, 1};
-
-        travel = travel->next;
-    }
+    if(IsKeyPressed(KEY_DOWN)) head->direction = (Vector2) {0, 1};
 }
 void UpdateSnake() {
-    SnakeNode* travel = head;
+    Vector2 prev_pos = head->position;
+    Vector2 prev_dir = head->direction;
+
     timer += GetFrameTime();
-    while(travel != NULL){
-        if(timer >= 1.0/SPEED) {
-            travel->position.x += travel->direction.x * CELLSIZE;
-            travel->position.y += travel->direction.y * CELLSIZE;
+    SnakeNode* current = head->next;
+    if(timer >= 1.0/SPEED) {
+            head->position.x += head->direction.x * CELLSIZE;
+            head->position.y += head->direction.y * CELLSIZE;
+        while(current != NULL){
+            Vector2 temp_pos = current->position;
+            Vector2 temp_dir = current->direction;
+
+            current->position = prev_pos;
+            current->direction = prev_dir;
+
+            prev_pos = temp_pos;
+            prev_dir = temp_dir;
+
+            current = current->next;
         }
-        travel = travel->next;
+        timer -= 1.0/SPEED;
     }
-    if(timer >= 1.0/SPEED) timer -= 1.0/SPEED;
 }
 void DrawSnake(){
     SnakeNode* travel = head;
@@ -113,26 +118,29 @@ void DrawSnake(){
     }
 }
 
-void CreateSnake(Vector2 position, Vector2 direction){
-    if(head == NULL) {
-        //Create the head node
-        head = (SnakeNode*)malloc(sizeof(SnakeNode));
+void CreateSnake(Vector2 position, Vector2 direction, int length){
+    while(length){
+        if(head == NULL) {
+            //Create the head node
+            head = (SnakeNode*)malloc(sizeof(SnakeNode));
 
-        head->position = position;
-        head->direction = direction;
-        head->next = NULL;
+            head->position = position;
+            head->direction = direction;
+            head->next = NULL;
 
-        tail = head;
-    }
-    else {
-        //Create a new node to attach to head
-        SnakeNode* body = (SnakeNode*)malloc(sizeof(SnakeNode));
+            tail = head;
+        }
+        else {
+            //Create a new node to attach to head
+            SnakeNode* body = (SnakeNode*)malloc(sizeof(SnakeNode));
 
-        body->position = position;
-        body->direction = direction;
-        body->next = NULL;
-        tail->next = body;
+            body->position = position;
+            body->direction = direction;
+            body->next = NULL;
+            tail->next = body;
 
-        tail = body;
+            tail = body;
+        }
+        length--;
     }
 }
